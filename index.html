@@ -1,0 +1,713 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Open Simulation Bench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Concept: an engineering drawing sheet of the bench itself.
+   Balance with a reflective LCD, hot plate, thermometer, cast tray and a live drying curve, framed by a drawing title block.
+   Paper-grey sheet with blueprint ink; the only saturated colour is the gold rule and the LCD's green-grey glass. */
+:root{
+  --paper:#FFFFFF; --sheet:#FFFFFF; --ink:#0E2038; --mute:#5A6B82; --rule:#9FAEC2; --faint:#E7ECF2; --gold:#B8901B;
+  --graphite:#2B3541; --graphite2:#3A4654; --lcd-bg:#C6D3B2; --lcd-ink:#1A2814; --glass:#DCE6F0; --glass-edge:#7E93AD;
+  --paste:#EFEDE8; --film-dry:#D9B672; --water:#2D7DD2; --heat:#D9692B; --merc:#C8362B;
+  --good:#1B7A4B; --good-bg:#DDF2E6; --mid:#8F5A00; --mid-bg:#FBEBCB; --bad:#B3321F; --bad-bg:#F9DAD4; --focus:#1F4E8C; color-scheme:light;
+  --head:"Barlow Condensed","Arial Narrow",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:14.5px/1.5 var(--sans);
+  background-image:linear-gradient(var(--faint) 1px,transparent 1px),linear-gradient(90deg,var(--faint) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+.sheet{max-width:1120px;margin:0 auto;background:var(--sheet);border:2px solid var(--ink);position:relative;
+  margin-top:max(14px,env(safe-area-inset-top,0px));margin-bottom:24px;
+  margin-left:max(12px,env(safe-area-inset-left,0px));margin-right:max(12px,env(safe-area-inset-right,0px))}
+@media (min-width:1160px){.sheet{margin-left:auto;margin-right:auto}}
+.inner{border:1px solid var(--rule);margin:6px}
+h1,h2,.lab{font-family:var(--head);text-transform:uppercase;letter-spacing:.06em;margin:0}
+/* drawing header */
+.top{display:grid;grid-template-columns:minmax(0,1fr) auto;border-bottom:2px solid var(--ink)}
+@media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}}
+.ttl{padding:16px 18px 14px}
+.ttl .k{font:500 11.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 4px}
+h1{font-size:clamp(30px,6vw,50px);line-height:.98;font-weight:700;border-bottom:3px solid var(--gold);display:inline-block;padding-bottom:4px}
+.ttl p{margin:10px 0 0;max-width:58ch;color:var(--mute);font-size:14px}
+.block{display:grid;grid-template-columns:auto auto;font:500 12px/1.35 var(--mono)}
+.block div{padding:6px 10px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
+.block div:nth-child(2n){border-right:0}.block div:nth-last-child(-n+2){border-bottom:0}
+.block span{display:block;color:var(--mute);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.block b{font-weight:600}
+/* layout */
+.cols{display:grid;grid-template-columns:268px minmax(0,1fr)}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+.ctl{padding:14px 16px;border-right:2px solid var(--ink)}
+@media (max-width:900px){.ctl{border-right:0;border-bottom:2px solid var(--ink)}}
+.main{min-width:0}
+.pane{padding:14px 16px;border-bottom:1px solid var(--rule)}
+.pane:last-child{border-bottom:0}
+.lab{font-size:15px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px}
+.lab small{font:400 11.5px var(--mono);letter-spacing:0;text-transform:none;color:var(--mute)}
+.lab i{font:500 10.5px var(--mono);letter-spacing:.08em;color:var(--gold);font-style:normal;border:1px solid var(--gold);padding:0 5px}
+/* controls */
+.rec{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font:400 12.5px var(--mono);margin:0 0 14px;padding:8px 0;border-block:1px dashed var(--rule)}
+.rec dt{color:var(--mute)}.rec dd{margin:0;text-align:right;font-weight:500}
+.f{margin:0 0 13px}
+.f label{display:flex;justify-content:space-between;font:500 12.5px var(--mono);margin-bottom:3px}
+.f output{color:var(--ink);font-weight:600}
+input[type=range]{width:100%;margin:0;accent-color:var(--ink)}
+.f p{font-size:11.5px;color:var(--mute);margin:1px 0 0}
+button{font:600 15px var(--head);letter-spacing:.07em;text-transform:uppercase;padding:9px 12px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;border-radius:0}
+button.go{background:var(--ink);color:var(--sheet)}
+button:hover{background:var(--gold);color:#0E2038;border-color:var(--gold)}
+button:disabled{opacity:.4;cursor:default;background:transparent;color:var(--ink);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.btns{display:grid;gap:7px}.btns .two{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.seed{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;margin-top:12px;font:500 11.5px var(--mono);color:var(--mute)}
+input[type=number]{width:100%;font:500 13px var(--mono);padding:6px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:0}
+.report{margin-top:12px;padding:9px 10px;border:1px dashed var(--gold);font-size:12px;color:var(--mute)}
+.report button{margin-top:6px;width:100%;font-size:13.5px}
+/* stepper */
+.steps{display:flex;flex-wrap:wrap;gap:0;margin:0 0 10px;padding:0;list-style:none;border:1.5px solid var(--ink)}
+.steps li{flex:1 1 90px;padding:5px 8px;font:600 13px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);border-right:1px solid var(--rule);display:flex;gap:6px;align-items:baseline}
+.steps li:last-child{border-right:0}
+.steps li b{font:500 10.5px var(--mono);color:var(--mute)}
+.steps li.done{color:var(--ink)}.steps li.done b{color:var(--good)}
+.steps li.on{background:var(--ink);color:var(--sheet)}.steps li.on b{color:var(--gold)}
+.say{font:500 12.5px var(--mono);min-height:1.5em;color:var(--ink);margin:0 0 6px}
+svg{display:block;width:100%;height:auto}
+.bench text{font-family:var(--mono)}
+.cap{font:600 11px var(--mono);fill:var(--mute);letter-spacing:.09em}
+.num{font:500 10.5px var(--mono);fill:var(--mute)}
+.tbl{stroke:var(--ink);stroke-width:2}
+.body{fill:var(--graphite);stroke:var(--ink);stroke-width:1.5}
+.lcd{fill:var(--lcd-bg);stroke:#0E1A12;stroke-width:2}
+.lcdt{font:600 34px var(--mono);fill:var(--lcd-ink)}
+.lcdu{font:500 15px var(--mono);fill:var(--lcd-ink)}
+.lcds{font:500 10px var(--mono);fill:var(--lcd-ink);opacity:.75}
+.gl{fill:var(--glass);fill-opacity:.55;stroke:var(--glass-edge);stroke-width:2}
+.tray{fill:none;stroke:var(--ink);stroke-width:2.2}
+.ax{stroke:var(--ink);stroke-width:1.4}.gr{stroke:var(--faint);stroke-width:1}.gr2{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 4}
+.ct{font:400 10.5px var(--mono);fill:var(--mute)}
+.gold{stroke:var(--gold);stroke-width:1.6;stroke-dasharray:6 4;fill:none}
+/* results */
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:500px;font-size:13.5px}
+th{font:600 13px var(--head);letter-spacing:.09em;text-transform:uppercase;text-align:left;padding:6px 8px;border-bottom:2px solid var(--ink);border-top:1px solid var(--ink)}
+td{padding:8px;border-bottom:1px solid var(--rule)}
+th.r,td.r{text-align:right}
+td.r{font:500 13.5px var(--mono);font-variant-numeric:tabular-nums}
+td small{display:block;font:400 11px var(--mono);color:var(--mute)}
+.chip{display:inline-block;min-width:4.7em;text-align:center;padding:1px 7px;font:600 12.5px var(--mono)}
+.chip.good{background:var(--good-bg);color:var(--good)}.chip.mid{background:var(--mid-bg);color:var(--mid)}.chip.bad{background:var(--bad-bg);color:var(--bad)}
+.dir{font:400 10.5px var(--mono);color:var(--mute);margin-left:6px}
+.pending{opacity:.28;transition:opacity .4s}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:0;margin:0;border:1px solid var(--rule)}
+.facts div{padding:8px 10px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:-0.5px}
+.facts dt{font:400 11px var(--mono);color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.facts dd{margin:2px 0 0;font:600 15px var(--mono)}.facts dd span{display:block;font:400 11.5px var(--sans);color:var(--mute)}
+.strip{display:grid;grid-template-columns:150px minmax(0,1fr) 150px;gap:4px 10px;align-items:center}
+@media (max-width:640px){.strip{grid-template-columns:minmax(0,1fr) auto}.strip svg{grid-column:1/-1;order:3}}
+.strip .n{font:500 12px var(--mono)}.strip .s{font:400 11.5px var(--mono);color:var(--mute);text-align:right}
+.strip svg{height:28px}
+.dot{fill:var(--ink);fill-opacity:.45}.last{fill:var(--gold);stroke:var(--ink);stroke-width:1.2}.mean{stroke:var(--ink);stroke-width:2.6}
+.note{font-size:12px;color:var(--mute);margin:10px 0 0;max-width:86ch}.note b{color:var(--ink)}
+.toast{font:400 12px var(--mono);color:var(--good);min-height:1.3em;margin-top:6px}
+.how ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0;border:1px solid var(--rule)}
+.how li{padding:10px 12px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:-.5px;font-size:13px;color:var(--mute)}
+.how li b{display:block;font:600 15px var(--head);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);margin-bottom:2px}
+.how li b i{font:500 11px var(--mono);color:var(--gold);font-style:normal;margin-right:7px}
+.try button{margin:8px 8px 0 0;font-size:13.5px;padding:6px 10px}.try{margin:12px 0 0;padding:9px 12px;border:1px dashed var(--gold);font-size:13px;color:var(--mute)}.try b{color:var(--ink)}
+.mvbox{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:0;border:1px solid var(--rule)}
+@media (max-width:760px){.mvbox{grid-template-columns:minmax(0,1fr)}}
+model-viewer{width:100%;height:420px;background:linear-gradient(#FFFFFF,#EEF2F6);--poster-color:transparent;--progress-bar-color:var(--gold);outline:none}
+@media (max-width:760px){model-viewer{height:340px}}
+.hs{width:22px;height:22px;border-radius:50%;border:2px solid var(--gold);background:var(--ink);color:#fff;font:600 11px/18px var(--mono);padding:0;text-align:center;cursor:pointer}
+.hs:hover{background:var(--gold);color:var(--ink)}
+.legend{list-style:none;margin:0;padding:0;border-left:1px solid var(--rule)}
+@media (max-width:760px){.legend{border-left:0;border-top:1px solid var(--rule);display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}}
+.legend li{border-bottom:1px solid var(--rule)}
+.legend button{display:grid;grid-template-columns:24px 1fr;gap:2px 8px;width:100%;text-align:left;border:0;padding:9px 10px;font:500 13px var(--sans);text-transform:none;letter-spacing:0;color:var(--ink)}
+.legend button b{font:600 11px var(--mono);color:var(--gold);grid-row:span 2;align-self:start;padding-top:2px}
+.legend button span{font:400 11.5px var(--mono);color:var(--mute)}
+.legend button:hover{background:var(--gold)}.legend button:hover span,.legend button:hover b{color:var(--ink)}
+.sel{font:500 12.5px var(--mono);padding:5px 8px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:0}
+.side{border-left:2px solid var(--ink);display:flex;flex-direction:column;min-width:330px}
+@media (max-width:760px){.side{border-left:0;border-top:2px solid var(--ink);min-width:0}}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:2px solid var(--ink)}
+.nav a{display:flex;align-items:baseline;justify-content:center;gap:5px;padding:10px 4px 8px;font:600 15px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-right:1px solid var(--rule);position:relative}
+.nav a:last-child{border-right:0}
+.nav a b{font:500 10px var(--mono);color:var(--gold);letter-spacing:0}
+.nav a em{font:500 10px var(--mono);font-style:normal;background:var(--ink);color:var(--sheet);padding:0 5px;margin-left:2px}
+.nav a:hover{background:var(--faint)}
+.nav a[aria-current=page]{background:var(--ink);color:var(--sheet)}
+.nav a[aria-current=page] b{color:var(--gold)}.nav a[aria-current=page] em{background:var(--gold);color:var(--ink)}
+.nav a:focus-visible{outline:2px solid var(--focus);outline-offset:-3px}
+.block{border-left:0!important;min-width:0!important;flex:1}
+.cols.wide{grid-template-columns:minmax(0,1fr)}
+.cols.wide .ctl{display:none}
+.page[hidden]{display:none!important}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding:8px 14px;border-top:2px solid var(--ink);font:400 11px var(--mono);color:var(--mute)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.nav{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:1fr}
+.nav a[hidden]{display:none}
+table.gl{min-width:780px}
+.gl td{vertical-align:top;font-size:13px;color:var(--mute);line-height:1.45}
+.gl td:first-child{font:600 14px var(--head);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);white-space:nowrap;width:1%}
+.how li em{font:600 10.5px var(--mono);font-style:normal;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+
+/* ---------- phones and touch ---------- */
+.dock{display:none}.dock[hidden]{display:none!important}.swipe{display:none}
+.sx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:900px){
+  .cols{display:flex;flex-direction:column}
+  .cols .main{order:1}.cols .ctl{order:2;border-right:0;border-top:2px solid var(--ink);border-bottom:0}
+  .runbtns{display:none}
+  .dock{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--sheet);border-top:2px solid var(--ink);
+    padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+  .dock button{flex:1 1 0;min-width:0;padding:10px 6px}
+  .dock #dock-run{flex:1.4 1 0}
+  .sheet{margin-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  #inputs{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  .main{min-width:0}
+}
+@media (max-width:640px){
+  body{overflow-x:hidden}
+  .sheet{margin-left:max(6px,env(safe-area-inset-left,0px));margin-right:max(6px,env(safe-area-inset-right,0px));margin-top:max(8px,env(safe-area-inset-top,0px))}
+  .inner{margin:4px}.ttl{padding:12px 12px 10px}.ttl p:not(.k){font-size:13.5px}
+  h1{font-size:34px}
+  .nav a{font-size:14px;padding:11px 2px 9px;gap:3px}.nav a b{display:none}
+  .block div{padding:5px 8px}
+  .pane,.ctl{padding:12px}
+  #inputs{grid-template-columns:1fr}
+  .swipe{display:block;font:400 11px var(--mono);color:var(--mute);margin:2px 0 0}
+  .sx svg.bench{min-width:640px}.sx #chart{min-width:640px}
+  .bench .num,.bench .cap{font-size:13px}.ct{font-size:13px}
+  .strip svg text{font-size:15px}
+  #tbl{min-width:0;font-size:13px}#tbl th{padding:6px 4px;font-size:12px;letter-spacing:.04em}#tbl td{padding:8px 4px}#tbl td.r{font-size:12.5px}
+  #tbl td small{font-size:10.5px}.dir i{display:none}.dir{margin-left:3px}.chip{min-width:3.8em;padding:1px 4px}
+  .facts{grid-template-columns:1fr}
+  .steps li{flex:1 1 45%;padding:5px 6px}
+  table.gl,.gl tbody,.gl tr,.gl td{display:block;min-width:0;width:auto}
+  .gl thead{display:none}
+  .gl tr{border:1px solid var(--rule);margin:0 0 10px;padding:8px 10px}
+  .gl td{border:0;padding:4px 0}
+  .gl td:first-child{white-space:normal;width:auto;font-size:15px;padding-bottom:2px}
+  .gl td[data-l]::before{content:attr(data-l);display:block;font:600 10px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--gold)}
+  .how ol{grid-template-columns:1fr}
+  .lab{flex-wrap:wrap}.lab small{flex-basis:100%}
+  model-viewer{height:320px}
+  .mvbox{grid-template-columns:1fr}.legend{border-left:0;border-top:1px solid var(--rule);display:grid;grid-template-columns:1fr 1fr}
+  .legend button{padding:9px 8px}
+  .foot{flex-direction:column;gap:2px}
+  .try button{margin:8px 6px 0 0}
+}
+@media (pointer:coarse){
+  button{min-height:44px}
+  .hs{width:30px;height:30px;font-size:13px;line-height:26px}
+  input[type=range]{height:30px}
+  .sel,input[type=number]{font-size:16px;min-height:44px}
+  .nav a{min-height:44px}
+}
+.key{margin:12px 0 0;border-top:1px dashed var(--rule);padding-top:10px}
+.key h3{font:600 14px var(--head);letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px}
+.key ul{list-style:none;margin:10px 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));border:1px solid var(--rule)}
+.key li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:-.5px;font-size:12.5px;color:var(--mute);line-height:1.4}
+.key li svg{flex:0 0 40px;width:40px;height:20px;overflow:visible}.key li b{color:var(--ink)}
+</style>
+<main class="sheet"><div class="inner">
+<header class="top">
+  <div class="ttl">
+    <p class="k">Open source · MIT licence · one file</p>
+    <h1>Open Simulation Bench</h1>
+    <p>A virtual lab for testing how measurement noise, losses and conditions change the outcome of an experiment. Pick an experiment, run it, and compare what the model predicts with what the simulated instruments read. Every run is seeded, so any result can be repeated.</p>
+  </div>
+  <div class="side">
+    <nav class="nav" aria-label="Pages">
+      <a href="#bench" data-p="bench"><b>01</b>Bench</a>
+      <a href="#results" data-p="results"><b>02</b>Results<em id="nav-count">1</em></a>
+      <a href="#model" data-p="model" id="nav-model"><b>03</b>Model</a>
+      <a href="#guide" data-p="guide"><b>04</b>Guide</a>
+    </nav>
+    <div class="block" aria-label="Drawing title block">
+      <div><span>Experiment</span><b id="tb-exp">—</b></div><div><span>Licence</span><b>MIT</b></div>
+      <div><span>Run</span><b id="tb-run">—</b></div><div><span>Seed</span><b id="tb-seed">—</b></div>
+      <div><span>Sheet</span><b id="tb-sheet">—</b></div><div><span>Status</span><b id="tb-state">SIMULATED</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="cols" id="cols">
+<aside class="ctl" id="ctl">
+  <div class="f" id="expbox" hidden><label for="exp">Experiment</label><select class="sel" id="exp" style="width:100%"></select></div>
+  <div class="lab"><span id="rec-t">Charge</span></div>
+  <dl class="rec" id="recipe"></dl>
+  <div class="lab">Conditions</div>
+  <div id="inputs"></div>
+  <div class="btns runbtns">
+    <button class="go" id="run" type="button">Run trial</button>
+    <div class="two"><button id="skip" type="button" disabled>Skip</button><button id="run20" type="button">Run ×20</button></div>
+  </div>
+  <div class="btns" style="margin-top:7px"><button id="clear" type="button">Clear log</button></div>
+  <div class="seed"><label for="seed">Seed</label><input id="seed" type="number" min="0" max="999999" step="1" inputmode="numeric"><button id="replay" type="button">Go</button></div>
+  <div class="report"><span id="ex-note"></span><button id="load" type="button">Load example run</button></div>
+</aside>
+
+<div class="main">
+  <!-- ============ BENCH ============ -->
+  <div class="page" id="p-bench">
+    <section class="pane" aria-labelledby="h-bench">
+      <div class="lab"><span id="h-bench">Bench</span><small id="exp-name"></small></div>
+      <ol class="steps" id="steps"></ol>
+      <p class="say" id="say" role="status" aria-live="polite"></p>
+      <div id="scene" class="sx"></div>
+      <p class="swipe">Swipe sideways to see the whole bench.</p>
+      <div class="btns" style="max-width:230px;margin-top:10px"><button id="to-results" type="button">See results →</button></div>
+    </section>
+    <section class="pane" aria-labelledby="h-dry">
+      <div class="lab"><span id="h-dry">Trace</span><small id="chart-s"></small></div>
+      <div class="sx"><svg id="chart" viewBox="0 0 900 230" role="img" aria-label="Trace of the measured quantity over the run"></svg></div>
+    </section>
+  </div>
+
+  <!-- ============ MODEL ============ -->
+  <div class="page" id="p-model" hidden>
+    <section class="pane" aria-labelledby="h-model">
+      <div class="lab"><span id="h-model">3D model</span><small>drag to turn, click the model then scroll or pinch to zoom</small></div>
+      <div class="mvbox">
+        <model-viewer id="mv" camera-controls touch-action="pan-y" interaction-policy="allow-when-focused" auto-rotate auto-rotate-delay="3500" rotation-per-second="7deg"
+          shadow-intensity="1.15" shadow-softness="0.8" exposure="0.8" environment-image="neutral" reveal="auto" field-of-view="32deg" min-camera-orbit="auto 5deg 0.16m" max-camera-orbit="auto 88deg 1.6m"></model-viewer>
+        <ol class="legend" id="legend"></ol>
+      </div>
+      <p class="note" id="mv-note"></p>
+    </section>
+  </div>
+
+  <!-- ============ RESULTS ============ -->
+  <div class="page" id="p-results" hidden>
+    <section class="pane" aria-labelledby="h-res">
+      <div class="lab"><span id="h-res">Predicted against measured</span><small id="res-meta"></small></div>
+      <div class="sc"><table id="tbl"><thead><tr><th>Quantity</th><th class="r">Predicted</th><th class="r">Measured</th><th class="r">% error</th></tr></thead><tbody id="rows"></tbody></table></div>
+      <p class="note"><b>% error</b> = |measured − predicted| / predicted × 100. ▲ the reading came out high, ▼ low.</p>
+    </section>
+    <section class="pane" aria-labelledby="h-true">
+      <div class="lab"><span id="h-true">What actually happened</span><small>hidden from the instruments, known to the model</small></div>
+      <dl class="facts" id="facts"></dl>
+    </section>
+    <section class="pane" aria-labelledby="h-sens">
+      <div class="lab"><span id="h-sens">What moves the error</span><small><label for="sens-q">quantity </label><select class="sel" id="sens-q"></select></small></div>
+      <div id="sens"></div>
+      <div class="strip"><span></span><svg viewBox="0 0 600 20" id="saxis" aria-hidden="true"></svg><span></span></div>
+      <p class="note">Same run (same seed and noise), one condition at a time swept from its lowest to its highest setting. The bar spans the error that results, the hollow dot is the lowest setting, the filled dot the highest, the dashed line is this run. Long bars mark the conditions worth controlling.</p>
+    </section>
+    <section class="pane" aria-labelledby="h-all">
+      <div class="lab"><span id="h-all">All logged runs</span><small id="count"></small></div>
+      <p class="note" style="margin-top:0">One dot per run for each quantity. Dots near the zero line are good predictions.</p>
+      <div id="strips"></div>
+      <div class="strip"><span></span><svg viewBox="0 0 600 20" id="axis" aria-hidden="true"></svg><span></span></div>
+      <div class="key">
+        <h3>What this plot shows</h3>
+        <p class="note" style="margin-top:0">Each row is one quantity. The horizontal axis is the <b>% error</b> of a run, which is how far the measured value landed from the predicted value, with the direction kept. Left of the zero line the reading came out lower than predicted (▼), right of it higher (▲). The closer to the zero line, the better the prediction held.</p>
+        <ul>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><line x1="20" x2="20" y1="2" y2="18" stroke="var(--mute)" stroke-width="2"/></svg><span><b>Grey line.</b> Zero error: measured equals predicted.</span></li>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><circle class="dot" cx="20" cy="10" r="5"/></svg><span><b>Dark dot.</b> One earlier logged run.</span></li>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><circle class="last" cx="20" cy="10" r="5.5"/></svg><span><b>Gold dot.</b> The run shown on this page, the latest one.</span></li>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><line class="mean" x1="20" x2="20" y1="3" y2="17"/></svg><span><b>Dark bar.</b> The mean error of every logged run.</span></li>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><text x="20" y="14" text-anchor="middle" style="font:500 9px var(--mono);fill:var(--mute)">±SD</text></svg><span><b>+3.1 % ± 2.4.</b> Mean error, then the standard deviation (SD): the typical spread of single runs around the mean. It reads 0.0 until there are two runs.</span></li>
+          <li><svg viewBox="0 0 40 20" aria-hidden="true"><text x="20" y="14" text-anchor="middle" style="font:500 9px var(--mono);fill:var(--mute)">±30</text></svg><span><b>Axis ends.</b> Runs beyond ±30 % are drawn on the edge.</span></li>
+        </ul>
+        <p class="note"><b>How to read it.</b> A bar well away from the zero line is <b>bias</b>, a steady offset that repeats every run. A wide scatter of dark dots is <b>noise</b>, random run-to-run variation. Use 20 or more runs before trusting either.</p>
+      </div>
+      <div class="btns" style="max-width:240px;margin-top:8px"><button id="copy" type="button">Copy table</button></div><div class="toast" id="toast" role="status"></div>
+    </section>
+  </div>
+
+  <!-- ============ GUIDE ============ -->
+  <div class="page" id="p-guide" hidden>
+    <section class="pane"><div class="lab"><span id="about-t">About this experiment</span></div><div id="about"></div></section>
+
+    <section class="pane">
+      <div class="lab">What is on this page<small>what it is, why it is there, what it means</small></div>
+      <div class="sc"><table class="gl">
+        <thead><tr><th>Item</th><th>What it is</th><th>Why it is used</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Seed</td><td data-l="What it is">A whole number that fixes every random draw in a run.</td><td data-l="Why it is used">So a result can be repeated, checked and shared. Random numbers on a computer are generated from a seed.</td><td data-l="What it means">Same seed and same conditions give the identical run. A new seed is a new simulated batch.</td></tr>
+          <tr><td>Conditions</td><td data-l="What it is">The sliders. They are the inputs you control.</td><td data-l="Why it is used">They are the factors being tested.</td><td data-l="What it means">A condition that appears in the prediction moves both the predicted and the measured value, so the error shows only what the prediction misses.</td></tr>
+          <tr><td>Predicted</td><td data-l="What it is">The answer from the ideal formula, with no noise and no losses.</td><td data-l="Why it is used">It is the benchmark every reading is judged against.</td><td data-l="What it means">What you would get if nothing went wrong.</td></tr>
+          <tr><td>Measured</td><td data-l="What it is">What the simulated instruments read, after noise, losses and drift are added.</td><td data-l="Why it is used">It copies how a real bench behaves, where every reading is slightly off.</td><td data-l="What it means">One reading is one sample, not the truth. Two runs of the same recipe give different readings.</td></tr>
+          <tr><td>% error and its colour</td><td data-l="What it is">|measured − predicted| ÷ predicted × 100. Green under 2 %, amber 2 to 10 %, red over 10 %. ▲ means high, ▼ low.</td><td data-l="Why it is used">A percentage lets quantities with different units be compared on one scale. The arrow keeps the direction that the absolute value hides.</td><td data-l="What it means">How far and which way the reading missed. A large error is a prompt to look for a cause, not proof of a mistake.</td></tr>
+          <tr><td>What actually happened</td><td data-l="What it is">The true size of each disturbance the model applied in this run.</td><td data-l="Why it is used">On a real bench you never see these. Showing them lets you test a guess about why a reading was off.</td><td data-l="What it means">Match an error to its cause, then change the recipe or the conditions to remove it.</td></tr>
+          <tr><td>Trace</td><td data-l="What it is">The quantity plotted over time, with the intermediate readings as dots and the predicted end value as a dashed line.</td><td data-l="Why it is used">It shows whether the process had finished when the final reading was taken.</td><td data-l="What it means">A curve still falling or rising at the stop mark means the run was cut short.</td></tr>
+          <tr><td>What moves the error</td><td data-l="What it is">Each condition swept from its lowest to its highest setting while the seed stays fixed.</td><td data-l="Why it is used">It finds the condition that matters most, so effort goes to the right place.</td><td data-l="What it means">A long bar is a sensitive condition, a short bar a robust one. It changes one condition at a time, so it cannot show interactions.</td></tr>
+          <tr><td>All logged runs</td><td data-l="What it is">One dot per run for every quantity, with the mean and the spread (± SD).</td><td data-l="Why it is used">A single run can mislead. Many runs separate a steady offset from random scatter.</td><td data-l="What it means">A mean away from zero is bias, a systematic offset. A wide spread is noise, random scatter.</td></tr>
+          <tr><td>Run ×20, Skip, Clear log, Copy table</td><td data-l="What it is">Twenty runs with fresh seeds at once, jump to the end of the animation, empty the log, copy every logged run as a table.</td><td data-l="Why it is used">Repeating runs is how an effect is told from chance. Copy table moves the data into a spreadsheet.</td><td data-l="What it means">Use 20 or more runs before trusting a mean.</td></tr>
+          <tr><td>Title block</td><td data-l="What it is">Experiment, run number, seed, page and status.</td><td data-l="Why it is used">It records exactly what is on screen, like the block on an engineering drawing.</td><td data-l="What it means">Status SIMULATED is a reminder that these numbers are not measurements from a real bench.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="pane how">
+      <div class="lab">How to conduct an experiment<small>about ten minutes</small></div>
+      <ol>
+        <li><b><i>01</i>Ask one question</b>Write it down first, for example "does humidity change the error?". <em>Why:</em> a clear question tells you which condition to change and which quantity to watch.</li>
+        <li><b><i>02</i>Set a baseline</b>Leave the conditions at their starting values, press Run ×20 and note the mean and spread for the quantity you care about. <em>Why:</em> the spread of the baseline is the noise floor that any effect has to beat.</li>
+        <li><b><i>03</i>Change one thing</b>Move a single slider, then press Run ×20 again with Clear log in between. <em>Why:</em> if two conditions change together you cannot tell which one caused the difference.</li>
+        <li><b><i>04</i>Repeat, do not trust one run</b>Use at least 20 runs for each setting. <em>Why:</em> one run is one random sample and can sit far from the typical result.</li>
+        <li><b><i>05</i>Compare means against the spread</b>A change in the mean that is clearly larger than the baseline spread, about twice it as a rule of thumb, is probably real. <em>Why:</em> a smaller change can come from noise alone.</li>
+        <li><b><i>06</i>Find the cause</b>Open What actually happened and What moves the error. <em>Why:</em> they show which disturbance or condition produced the error, so the next change is a guess with a reason.</li>
+        <li><b><i>07</i>Fix it and test again</b>Change the condition you blame, such as a longer wait, and run again with the same seed. <em>Why:</em> with the noise held fixed, any difference comes from your change.</li>
+        <li><b><i>08</i>Report it so others can repeat it</b>State the experiment, the conditions, the number of runs, the mean ± SD and one seed. <em>Why:</em> anyone can type that seed and see the same run. Say that the numbers are simulated.</li>
+      </ol>
+      <p class="try" style="margin-top:12px"><b>Common mistakes.</b> Changing two conditions at once. Judging from a single run. Reading only the size of an error and missing its direction, which tells bias from noise.</p>
+    </section>
+
+    <section class="pane"><div class="lab">Try this</div><div class="try" id="try" style="margin-top:0"></div></section>
+
+  </div>
+</div>
+</div>
+<div class="dock" id="dock" aria-label="Quick actions"><button class="go" id="dock-run" type="button">Run trial</button><button id="dock-20" type="button">Run ×20</button><button id="dock-ctl" type="button">Conditions ↓</button></div>
+<div class="foot"><span>OPEN SIMULATION BENCH · MIT LICENCE</span><span>SEEDED · DETERMINISTIC PER SEED · SIMULATED DATA</span></div>
+</div></main>
+
+<script>
+/* ====================================================================================
+   Open Simulation Bench. MIT licence: free to copy, modify and redistribute.
+   One file, no build step. Add an experiment by adding an object to EXPERIMENTS below.
+   ==================================================================================== */
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)},NS="http://www.w3.org/2000/svg";
+
+/* ---------- shared helpers (available to every experiment) ---------- */
+function rng(s){var a=s>>>0;return function(){a=(a+0x6D2B79F5)>>>0;var t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function nrm(r){var u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function qz(x,s){return Math.round(x/s)*s}
+function f(x,d){return x.toFixed(d)}
+function ease(u){return 1-Math.pow(1-u,3)}
+function hx(c){return[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)]}
+function mix(a,b,p){var A=hx(a),B=hx(b);return"rgb("+A.map(function(v,i){return Math.round(v+(B[i]-v)*p)}).join(",")+")"}
+function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+
+/* line chart used by the Trace panel: curve, optional reference curve, intermediate readings, guide lines */
+function lineChart(svg,c){
+  var W=900,H=230,L=64,R=22,Tp=16,B=40,X=function(x){return L+x/c.xMax*(W-L-R)},Y=function(y){return Tp+(c.yHi-y)/(c.yHi-c.yLo)*(H-Tp-B)},s="",v,i;
+  for(v=Math.ceil(c.yLo/c.yStep)*c.yStep;v<=c.yHi+1e-9;v+=c.yStep)s+="<line class=gr x1="+L+" x2="+(W-R)+" y1="+Y(v)+" y2="+Y(v)+" /><text class=ct x="+(L-8)+" y="+(Y(v)+4)+" text-anchor=end>"+v+"</text>";
+  for(v=0;v<=c.xMax+1e-9;v+=c.xStep)s+="<line class=gr x1="+X(v)+" x2="+X(v)+" y1="+Tp+" y2="+(H-B)+" /><text class=ct x="+X(v)+" y="+(H-B+16)+" text-anchor=middle>"+v+"</text>";
+  s+="<line class=ax x1="+L+" x2="+L+" y1="+Tp+" y2="+(H-B)+" /><line class=ax x1="+L+" x2="+(W-R)+" y1="+(H-B)+" y2="+(H-B)+" />";
+  s+="<text class=ct x="+((L+W-R)/2)+" y="+(H-6)+" text-anchor=middle>"+c.xLabel+"</text><text class=ct transform='translate(14,"+((Tp+H-B)/2)+") rotate(-90)' text-anchor=middle>"+c.yLabel+"</text>";
+  (c.hlines||[]).forEach(function(h){s+="<line class=gold x1="+L+" x2="+(W-R)+" y1="+Y(h.y)+" y2="+Y(h.y)+" /><text class=ct x="+(W-R-4)+" y="+(Y(h.y)-5)+" text-anchor=end fill=var(--gold)>"+h.label+"</text>"});
+  if(c.vline)s+="<line class=gr2 x1="+X(c.vline.x)+" x2="+X(c.vline.x)+" y1="+Tp+" y2="+(H-B)+" /><text class=ct x="+(X(c.vline.x)-4)+" y="+(Tp+10)+" text-anchor=end>"+c.vline.label+"</text>";
+  if(c.ref){var rd="M"+X(0)+" "+Y(c.ref(0));for(v=c.dx;v<=c.xMax+1e-9;v+=c.dx)rd+=" L"+X(v)+" "+Y(c.ref(v));s+="<path d='"+rd+"' fill=none stroke=var(--gold) stroke-width=1.8 stroke-dasharray='6 4' />"}
+  var d="M"+X(0)+" "+Y(c.y(0));for(v=c.dx;v<=c.upto+1e-6;v+=c.dx)d+=" L"+X(v)+" "+Y(c.y(v));
+  s+="<path d='"+d+"' fill=none stroke=var(--ink) stroke-width=2.2 />";
+  for(v=0,i=0;v<=c.upto+1e-6;v+=c.dotEvery,i++)s+="<circle cx="+X(v)+" cy="+Y(c.y(v)+c.noise(i))+" r=3 fill=var(--gold) stroke=var(--ink) stroke-width=1 />";
+  svg.innerHTML=s;
+}
+
+/* ====================================================================================
+   EXPERIMENTS  ←  each experiment is one object. Copy the starch one as a pattern.
+   ==================================================================================== */
+var EXPERIMENTS=[];
+
+/* ---------------------------------------------------------------- 1. Starch film casting */
+(function(){
+var SVG='<svg class="bench" viewBox="0 0 900 330" role="img" aria-label="Bench: balance with cup, hot plate with beaker and thermometer, cast tray with film and ruler">'+
+'<defs><pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--rule)" stroke-width="1.3"/></pattern></defs>'+
+'<rect x="0" y="286" width="900" height="44" fill="url(#hatch)"/><line class="tbl" x1="0" x2="900" y1="286" y2="286"/>'+
+'<g transform="translate(30,0)"><text class="cap" x="0" y="26">01 BALANCE</text><text class="num" x="0" y="40">0.01 g · tared</text>'+
+'<rect class="body" x="10" y="196" width="232" height="90" rx="8"/><rect x="44" y="184" width="164" height="12" rx="3" fill="var(--graphite2)" stroke="var(--ink)" stroke-width="1.5"/>'+
+'<path class="gl" d="M92 184 L97 112 H157 L162 184 Z"/><rect id="cup" x="96" y="184" width="62" height="0" fill="#EFEDE8"/>'+
+'<rect class="lcd" x="26" y="210" width="200" height="62" rx="4"/><text class="lcds" x="34" y="226">NET</text><text class="lcds" x="214" y="226" text-anchor="end" id="lcd-s">STABLE</text>'+
+'<text class="lcdt" id="lcd" x="196" y="260" text-anchor="end">0.00</text><text class="lcdu" x="216" y="260" text-anchor="end">g</text></g>'+
+'<g transform="translate(305,0)"><text class="cap" x="0" y="26">02 HOT PLATE</text><text class="num" x="0" y="40">gelatinise at 70 °C</text>'+
+'<rect class="body" x="0" y="268" width="250" height="18" rx="4"/><rect id="plate" x="10" y="258" width="230" height="10" rx="2" fill="var(--graphite2)" stroke="var(--ink)" stroke-width="1.5"/>'+
+'<path class="gl" d="M70 140 L78 258 H172 L180 140 Z"/><rect id="paste" x="80" y="258" width="92" height="0" fill="#EDEAE2"/>'+
+'<g id="steam" fill="var(--glass-edge)"><circle cx="104" cy="120" r="6"/><circle cx="126" cy="112" r="7"/><circle cx="148" cy="120" r="6"/></g></g>'+
+'<g transform="translate(590,0)"><rect x="-2" y="90" width="14" height="164" rx="7" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>'+
+'<circle cx="5" cy="262" r="13" fill="var(--merc)" stroke="var(--ink)" stroke-width="2"/><rect id="merc" x="2" y="250" width="6" height="0" fill="var(--merc)"/>'+
+'<g class="num"><line x1="16" x2="24" y1="228" y2="228" stroke="var(--ink)"/><text x="28" y="231">25</text><line x1="16" x2="24" y1="170" y2="170" stroke="var(--ink)"/><text x="28" y="173">50</text>'+
+'<line x1="16" x2="24" y1="112" y2="112" stroke="var(--ink)"/><text x="28" y="115">75 °C</text></g><text id="temp-t" x="-4" y="76" font-size="16" font-weight="600" fill="var(--ink)">25.0 °C</text></g>'+
+'<g transform="translate(640,0)"><text class="cap" x="0" y="26">03 CAST TRAY</text><text class="num" x="0" y="40" id="trayt">15 × 15 cm</text>'+
+'<rect id="film" x="8" y="262" width="244" height="0" fill="#EFEDE8"/><path class="tray" d="M0 214 V270 H260 V214"/><line class="tray" x1="0" x2="260" y1="270" y2="270"/>'+
+'<path id="curl" d="M236 262 q18 -2 22 -22 q-6 14 -22 16 z" fill="var(--film-dry)" stroke="var(--ink)" stroke-width="1" opacity="0"/><g id="pts"></g>'+
+'<rect x="0" y="292" width="260" height="14" fill="var(--sheet)" stroke="var(--ink)" stroke-width="1.2"/><g id="rule" stroke="var(--ink)" stroke-width="1"></g></g></svg>';
+var SAY=["Weighing starch","Adding glycerol","Adding water","Adding vinegar"];
+function massAt(t,h){return Math.min(t.m0,t.sol*(1+t.wb)+t.wat*Math.exp(-h/t.tau))}
+
+EXPERIMENTS.push({
+  id:"starch", name:"Starch film casting", seed:116722, sensDefault:"mf",
+  about:'<p class="note" style="margin-top:0;max-width:82ch">A 5 g batch of corn starch is mixed with glycerol, water and vinegar, heated, cast into a square mould and dried to a thin film. The film is then weighed and measured.</p>'+
+    '<p class="note"><b>Predicted</b> values come from simple formulas: a mass balance, thickness t = m / (ρA) with ρ = 1300 kg/m³, and stress σ = mg / (w·t) for a 20 mm strip under a 100 g load.</p>'+
+    '<p class="note"><b>Measured</b> values add what a real bench adds: balance and cylinder noise, glycerol overshoot, paste lost on the spoon and pot, steam lost while heating, water left at the chosen stop time, moisture the film holds at the chosen humidity, a density that is not exactly 1300, edge shrinkage and five uneven caliper readings.</p>'+
+    '<p class="note"><b>Illustration only.</b> Simulated numbers for demonstration, not results of a physical trial. Rate constants are plausible estimates, not fitted to data.</p>',
+  exampleNote:"Starting values with seed 116722.",
+  recipeTitle:"Charge",
+  recipe:function(s){return[["Corn starch","5.00 g"],["Glycerol",f(s.ratio*5,2)+" g"],["Water","20 mL"],["Vinegar","5 mL"]]},
+  inputs:[
+    {id:"ratio",label:"Glycerol : starch",min:0.10,max:0.40,step:0.05,value:0.20,fmt:function(v){return f(v,2)},hint:"More glycerol, more moisture held."},
+    {id:"side",label:"Mould side",min:12,max:20,step:1,value:15,fmt:function(v){return v+" cm"}},
+    {id:"hours",label:"Dry for",min:4,max:48,step:1,value:24,fmt:function(v){return v+" h"},hint:"Stop early and water stays in the sheet."},
+    {id:"temp",label:"Room",min:15,max:40,step:1,value:25,fmt:function(v){return v+" °C"}},
+    {id:"rh",label:"Humidity",min:30,max:85,step:1,value:50,fmt:function(v){return v+" %"}}],
+  quantities:[{k:"ratio",n:"Glycerol : starch ratio",u:"",d:3},{k:"mi",n:"Initial mixture mass",u:" g",d:2},{k:"lost",n:"Water lost on drying",u:" g",d:2},
+    {k:"mf",n:"Dry film mass",u:" g",d:2},{k:"t",n:"Film thickness",u:" mm",d:3},{k:"sig",n:"Stress in test strip",u:" MPa",d:3}],
+  stages:[{n:"Weigh",d:2.1},{n:"Heat",d:1.7},{n:"Cast",d:1.0},{n:"Dry",d:3.4},{n:"Measure",d:1.9}],
+  facts:[{k:"left",n:"Left on spoon and pot",u:" g",d:2,note:"never reached the mould"},{k:"steam",n:"Steam while heating",u:" g",d:2,note:"water gone before casting"},
+    {k:"free",n:"Water still in sheet",u:" g",d:2,note:function(t){return"after "+t.s.hours+" h, time constant "+f(t.truth.tau,1)+" h"}},
+    {k:"wb",n:"Moisture held in film",u:" %",d:1,note:"of dry solids, set by humidity and glycerol"},{k:"rho",n:"True film density",u:" kg/m³",d:0,note:"prediction assumes 1300"},
+    {k:"shr",n:"Edge shrinkage",u:" %",d:1,note:"of the sheet side"},{k:"cv",n:"Thickness spread",u:" %",d:1,note:"uneven spreading"}],
+  examples:[{t:"Stop drying early",set:{hours:8},k:"mf",fact:"free"},{t:"A humid room",set:{rh:80},k:"mf",fact:"wb"},{t:"Dry air",set:{rh:30},k:"mf",fact:"wb"},
+    {t:"Glycerol heavy",set:{ratio:0.4},k:"mf",fact:"wb"},{t:"A cold room",set:{temp:15,hours:12},k:"mf",fact:"free"},{t:"A bigger mould",set:{side:20},k:"t"}],
+  model:function(s,seed){
+    var r=rng(seed),N=function(m,sd){return m+sd*nrm(r)},U=function(a,b){return a+(b-a)*r()};
+    var ms=5,mg=s.ratio*ms,mw=20,mv=5,A=Math.pow(s.side/100,2);
+    var mi=ms+mg+mw+mv,mf=ms+mg,tp=(mf/1000)/(1300*A)*1000,sp=(0.100*9.81)/(0.020*tp/1000)/1e6;
+    var pred={ratio:s.ratio,mi:mi,lost:mi-mf,mf:mf,t:tp,sig:sp};
+    var sR=qz(N(ms,0.02),0.01),gR=qz(N(mg,0.03),0.01),wM=N(mw,0.3)*0.998,vM=N(mv,0.2)*1.01;
+    var miT=sR+gR+wM+vM,spoon=U(0.05,0.35),steam=U(0.5,1.8),pot=U(0.02,0.07);
+    var miM=qz(miT-spoon+N(0,0.01),0.01);
+    var kap=(1-spoon/miT)*(1-pot),sol=(sR+gR)*kap,wat=Math.max(0,(wM+vM-steam)*kap);
+    var hw=((sol+wat)/1.05)/(s.side*s.side)*10,tau=5*(hw/1.3)*Math.exp(-(s.temp-25)/18)*(1+1.8*(s.rh/100-0.5));
+    var free=wat*Math.exp(-s.hours/tau),wb=Math.min(0.3,Math.max(0.02,N(0.04+0.12*s.rh/100+0.10*s.ratio,0.012)));
+    var mfT=sol*(1+wb)+free,mfM=qz(mfT+N(0,0.01),0.01);
+    var shr=U(0.005,0.03),At=Math.pow(s.side*(1-shr)/100,2),rho=N(1330-100*s.ratio,35);
+    var tT=(mfT/1000)/(rho*At)*1000,cv=U(0.06,0.14),pts=[],i;
+    for(i=0;i<5;i++)pts.push(Math.max(0.02,qz(tT*(1+cv*nrm(r))+N(0,0.005),0.01)));
+    var tm=pts.reduce(function(a,b){return a+b},0)/5,wm=qz(N(20,0.4),0.5),load=N(100,0.15);
+    var sm=(load/1000*9.81)/((wm/1000)*(tm/1000))/1e6;
+    var meas={ratio:gR/sR,mi:miM,lost:miM-mfM,mf:mfM,t:tm,sig:sm};
+    var rr=rng(seed^0x5bd1e995),wn=[];for(i=0;i<30;i++)wn.push(0.04*nrm(rr));
+    var tsd=Math.sqrt(pts.reduce(function(a,b){return a+Math.pow(b-tm,2)},0)/4);
+    return{pred:pred,meas:meas,notes:{t:"mean of 5 readings, SD "+f(tsd,3)+" mm"},
+      pts:pts,read:[sR,gR,wM,vM,miT,miM],sol:sol,wat:wat,tau:tau,wb:wb,m0:sol+wat,wn:wn,
+      truth:{left:miT*(1-(1-spoon/miT)*(1-pot)),steam:steam,free:free,wb:wb*100,rho:rho,shr:shr*100,cv:cv*100,tau:tau}};
+  },
+  scene:{svg:SVG,
+    init:function(){var g=$("rule"),W=260,i;for(i=0;i<=150;i++){var x=i*W/150,L=i%10===0?9:(i%5===0?6:3.5);el("line",{x1:x,x2:x,y1:292,y2:292+L},g)}
+      for(i=0;i<=15;i+=5)el("text",{x:i*W/15,y:316,"text-anchor":"middle",class:"num"},g).textContent=i},
+    draw:function(t,stage,u){
+      var cup=$("cup"),paste=$("paste"),film=$("film"),plate=$("plate"),steam=$("steam"),merc=$("merc"),curl=$("curl"),pts=$("pts");
+      var H=t.s.hours,T=25,msg="",cupH=0,pasteH=0,fH=0,fOp=0,fCol="#EFEDE8",heat=0,vap=0,n=0,lcd="0.00",lcs="STABLE",curlOp=0,mEnd=massAt(t,H);
+      if(stage===0){var a=t.read,cum=[a[0],a[0]+a[1],a[0]+a[1]+a[2],a[4]],p=u*4,i=Math.min(3,Math.floor(p)),fr=p-i,prev=i?cum[i-1]:0,v=prev+(cum[i]-prev)*ease(fr);
+        lcd=f(v,2);lcs=fr<0.85?"WAIT":"STABLE";cupH=Math.max(2,70*v/a[4]);cup.setAttribute("fill",["#F3F1EC","#E9D9B4","#DCE6EE","#E9E5DA"][i]);msg=SAY[i]+" ... "+f(v,2)+" g"}
+      else if(stage===1){T=25+45*ease(u);heat=u;vap=u;pasteH=64;msg="Heating to 70 °C, stirring. Starch granules swell and the paste thickens"}
+      else if(stage===2){pasteH=64*(1-u);fOp=u;fH=10;fCol="#ECE9E1";T=70-8*u;vap=(1-u)*0.4;msg="Casting into the "+t.s.side+" cm mould"}
+      else if(stage===3){var h=u*H,m=massAt(t,h),p2=(t.m0-m)/Math.max(0.01,t.m0-mEnd);fOp=1;fH=10-5*Math.min(1,p2);fCol=mix("#ECE9E1","#D9B672",Math.min(1,p2));T=62-(62-t.s.temp)*ease(u);
+        lcd=f(m,2);lcs=u<0.97?"DRYING":"STABLE";msg="Drying. "+Math.floor(h)+" h of "+H+" h. Sheet mass "+f(m,2)+" g"}
+      else{fOp=1;fH=5;fCol="#D9B672";T=t.s.temp;n=stage===4?Math.ceil(u*5):5;lcd=f(t.meas.mf,2);curlOp=stage===4?Math.min(1,u*2):1;
+        msg=stage===4?"Caliper: reading "+Math.min(5,n)+" of 5":"Run complete. Weighed sheet "+f(t.meas.mf,2)+" g"}
+      $("lcd").textContent=lcd;$("lcd-s").textContent=lcs;cup.setAttribute("height",cupH);cup.setAttribute("y",184-cupH);
+      paste.setAttribute("height",pasteH);paste.setAttribute("y",258-pasteH);
+      film.setAttribute("height",fH);film.setAttribute("y",270-fH);film.style.fill=fCol;film.style.opacity=fOp;
+      plate.style.fill=mix("#3A4654","#D9692B",heat);
+      var tt=Math.max(25,Math.min(75,T));merc.setAttribute("height",12+(tt-25)/50*116);merc.setAttribute("y",250-(12+(tt-25)/50*116));$("temp-t").textContent=f(T,1)+" °C";
+      var now=performance.now()/500;[].forEach.call(steam.children,function(c,i){c.setAttribute("cy",120-((now+i*1.3)%3)*16);c.setAttribute("opacity",vap*(1-((now+i*1.3)%3)/3)*0.8)});
+      curl.setAttribute("opacity",curlOp);$("trayt").textContent=t.s.side+" × "+t.s.side+" cm";
+      pts.innerHTML="";for(var j=0;j<n;j++){var x=34+j*47,c=el("circle",{cx:x,cy:j%2?256:252,r:5,fill:"var(--gold)",stroke:"var(--ink)","stroke-width":1.2},pts);
+        el("text",{x:x,y:j%2?246:236,"text-anchor":"middle",class:"num"},pts).textContent=f(t.pts[j],2)}
+      return msg}},
+  chart:{title:"Drying curve",sub:"sheet mass against time, weighed through the drying",
+    draw:function(svg,t,stage,u){var H=t.s.hours,up=stage<3?0:stage===3?u*H:H,lo=Math.floor(t.sol*(1+t.wb))-1,hi=Math.ceil(t.m0)+1;
+      lineChart(svg,{xMax:48,xStep:8,yLo:lo,yHi:hi,yStep:5,xLabel:"drying time, h",yLabel:"sheet mass, g",upto:up,dx:0.25,dotEvery:1.5,
+        y:function(x){return massAt(t,x)},noise:function(i){return t.wn[i%30]},
+        hlines:[{y:t.pred.mf,label:"predicted dry mass "+f(t.pred.mf,2)+" g"}],vline:{x:H,label:"stop "+H+" h"}})}},
+  model3d:{src:"model/prototype.b64.txt",poster:"model/poster.jpg",alt:"3D model of the starch film experiment: film sheet, test strip, ruler, starch dish, glycerol bottle and 100 g brass mass on a lab bench",
+    orbit:"-8deg 58deg 0.64m",target:"0 0.01 0",zoom:"-15deg 52deg ",
+    note:"The sheet is 15 × 15 cm and about 0.2 mm thick, the strip 20 mm wide, the ruler 30 cm and the brass mass 100 g. Press a number to fly the camera to that part.",
+    parts:[{n:"Film sheet",d:"15 × 15 cm · about 0.2 mm",pos:"0 0.004 -0.01",r:"0.34m"},{n:"Test strip",d:"20 mm wide",pos:"0.128 0.002 -0.035",r:"0.26m"},
+      {n:"Ruler",d:"30 cm · 1 mm divisions",pos:"-0.005 0.004 0.098",r:"0.34m"},{n:"Corn starch",d:"5 g charge",pos:"-0.165 0.02 -0.115",r:"0.24m"},
+      {n:"Glycerol",d:"plasticiser, 1 g",pos:"-0.07 0.075 -0.135",r:"0.26m",nm:"0 0 1"},{n:"100 g mass",d:"brass, hangs from the strip",pos:"0.168 0.044 -0.118",r:"0.24m"}]}
+});
+})();
+
+/* ---------------------------------------------------------------- 2. Cup of tea cooling (a second, unrelated example) */
+EXPERIMENTS.push({
+  id:"tea", name:"Cup of tea cooling", seed:1, sensDefault:"Tw",
+  about:'<p class="note" style="margin-top:0;max-width:82ch">A mug of hot tea is left to cool on a table, and its temperature is read with a thermometer. It is a deliberately different experiment, included to show that the same bench works for any process where a prediction meets a messy measurement.</p>'+
+    '<p class="note"><b>Predicted</b> values use Newton\'s law of cooling, T(t) = T<sub>room</sub> + (T<sub>start</sub> − T<sub>room</sub>)·e<sup>−kt</sup>, with k = 0.045 per minute for a 250 mL mug.</p>'+
+    '<p class="note"><b>Measured</b> values add: a mug that soaks up some heat first, evaporation that cools faster than the formula says, a thermometer that lags and jitters, and a cooling rate that varies from mug to mug.</p>'+
+    '<p class="note"><b>Illustration only.</b> Simulated numbers, not measurements.</p>',
+  exampleNote:"Starting values with seed 1.",
+  recipeTitle:"Setup",
+  recipe:function(s){return[["Liquid","tea"],["Mug",s.vol+" mL"],["Start",s.T0+" °C"],["Room",s.Tr+" °C"]]},
+  inputs:[
+    {id:"T0",label:"Start temperature",min:70,max:98,step:1,value:90,fmt:function(v){return v+" °C"},hint:"Water straight from the kettle."},
+    {id:"Tr",label:"Room temperature",min:10,max:30,step:1,value:21,fmt:function(v){return v+" °C"}},
+    {id:"wait",label:"Wait",min:2,max:40,step:1,value:15,fmt:function(v){return v+" min"},hint:"How long before the reading."},
+    {id:"vol",label:"Mug size",min:150,max:400,step:10,value:250,fmt:function(v){return v+" mL"},hint:"A bigger mug cools more slowly."}],
+  quantities:[{k:"Tw",n:"Temperature after the wait",u:" °C",d:1},{k:"t60",n:"Time to cool to 60 °C",u:" min",d:1},{k:"drop",n:"Temperature drop",u:" °C",d:1}],
+  stages:[{n:"Pour",d:1.4},{n:"Stir",d:1.2},{n:"Wait",d:3.2},{n:"Read",d:1.4}],
+  facts:[{k:"pre",n:"Heat soaked by the mug",u:" °C",d:1,note:"the tea starts cooler than the kettle water"},{k:"k",n:"True cooling rate",u:" /min",d:3,note:function(t){return"the prediction assumes "+f(t.pred.k,3)}},
+    {k:"evap",n:"Extra cooling by evaporation",u:" /min",d:3,note:"steam carries heat away"},{k:"lag",n:"Thermometer lag",u:" min",d:2,note:"it reads the tea as it was a moment ago"}],
+  examples:[{t:"A cold room",set:{Tr:10},k:"Tw",fact:"k"},{t:"A big mug",set:{vol:400},k:"Tw",fact:"k"},{t:"A long wait",set:{wait:40},k:"Tw",fact:"evap"},{t:"Boiling hot",set:{T0:98},k:"t60",fact:"pre"}],
+  model:function(s,seed){
+    var r=rng(seed),N=function(m,sd){return m+sd*nrm(r)},U=function(a,b){return a+(b-a)*r()};
+    var k0=0.045*Math.pow(250/s.vol,0.55),T0=s.T0,Tr=s.Tr,w=s.wait;
+    var pred={Tw:Tr+(T0-Tr)*Math.exp(-k0*w),t60:Math.log((T0-Tr)/(60-Tr))/k0,drop:(T0-Tr)*(1-Math.exp(-k0*w)),k:k0};
+    var pre=U(2,6),evap=U(0.002,0.012)*(1+(30-Tr)/40),k=k0*(1+U(-0.05,0.08))+evap,lag=U(0.3,0.8),T0e=T0-pre;
+    var T=function(x){return Tr+(T0e-Tr)*Math.exp(-k*Math.max(0,x))};
+    var T0r=qz(N(T0,0.3),0.1),Twm=qz(T(w-lag)+N(0,0.3),0.1),t60m=Math.max(0,qz(Math.log((T0e-Tr)/(60-Tr))/k+lag+N(0,0.4),0.1));
+    var rr=rng(seed^0x27d4eb2f),wn=[],i;for(i=0;i<45;i++)wn.push(0.3*nrm(rr));
+    return{pred:pred,meas:{Tw:Twm,t60:t60m,drop:T0r-Twm},notes:{},wn:wn,T:T,T0r:T0r,
+      truth:{pre:pre,k:k,evap:evap,lag:lag}};
+  },
+  readout:function(t,stage,u){var s=t.s;
+    if(stage===0)return{value:f(s.Tr+(t.T0r-s.Tr)*ease(u),1),unit:"°C",tag:"POUR",msg:"Pouring the water onto the tea"};
+    if(stage===1)return{value:f(t.T0r-(s.T0-t.T(0))*ease(u),1),unit:"°C",tag:"STIR",msg:"Stirring. The mug wall soaks up heat"};
+    if(stage===2)return{value:f(t.T(u*s.wait),1),unit:"°C",tag:"WAIT "+Math.floor(u*s.wait)+" / "+s.wait+" MIN",msg:"Waiting. "+Math.floor(u*s.wait)+" min of "+s.wait+" min"};
+    return{value:f(t.meas.Tw,1),unit:"°C",tag:stage===3?"READ":"DONE",msg:stage===3?"Reading the thermometer":"Run complete. Thermometer reads "+f(t.meas.Tw,1)+" °C"}},
+  chart:{title:"Cooling curve",sub:"tea temperature against time, with the formula's prediction dashed",
+    draw:function(svg,t,stage,u){var s=t.s,up=stage<2?0:stage===2?u*s.wait:s.wait,k0=t.pred.k,lo=Math.floor(Math.min(s.Tr,t.T(s.wait))/10)*10;
+      lineChart(svg,{xMax:40,xStep:5,yLo:lo,yHi:100,yStep:10,xLabel:"time, min",yLabel:"temperature, °C",upto:up,dx:0.25,dotEvery:1,
+        y:function(x){return t.T(x)},noise:function(i){return t.wn[i%45]},ref:function(x){return s.Tr+(s.T0-s.Tr)*Math.exp(-k0*x)},
+        hlines:[{y:60,label:"60 °C, comfortable to drink"}],vline:{x:s.wait,label:"read at "+s.wait+" min"}})}}
+});
+
+/* ====================================================================================
+   ENGINE: pages, controls, stage player, results, sensitivity, log. No experiment details here.
+   ==================================================================================== */
+var X,hist=[],cur=null,play=null,PAGES=["bench","results","model","guide"],PAGE="bench",modelLoaded=false;
+
+function genericScene(){
+  return{svg:'<svg viewBox="0 0 900 230" role="img" aria-label="Instrument display"><rect class="body" x="190" y="24" width="520" height="150" rx="12"/><rect class="lcd" x="222" y="46" width="456" height="106" rx="6"/>'+
+    '<text class="lcds" x="236" y="66" id="g-tag" style="font-size:14px">READY</text><text class="lcdt" id="g-lcd" x="620" y="132" text-anchor="end" style="font-size:72px">0.0</text><text class="lcdu" id="g-unit" x="660" y="132" text-anchor="end" style="font-size:26px"></text>'+
+    '<rect x="222" y="190" width="456" height="10" fill="none" stroke="var(--ink)" stroke-width="1.5"/><rect id="g-bar" x="222" y="190" width="0" height="10" fill="var(--gold)"/><text class="cap" x="450" y="222" text-anchor="middle" id="g-cap">PROTOCOL PROGRESS</text></svg>',
+    init:function(){},
+    draw:function(t,stage,u){var o=X.readout(t,stage,u),n=X.stages.length,tot=0,acc=0,i;X.stages.forEach(function(s){tot+=s.d});
+      if(stage>=n)acc=tot;else{for(i=0;i<stage;i++)acc+=X.stages[i].d;acc+=u*X.stages[stage].d}
+      $("g-lcd").textContent=o.value;$("g-unit").textContent=o.unit;$("g-tag").textContent=o.tag;$("g-bar").setAttribute("width",456*acc/tot);return o.msg}}}
+
+function st(){var s={};X.inputs.forEach(function(i){s[i.id]=+$("in-"+i.id).value});return s}
+function evalModel(s,seed){var t=X.model(s,seed);t.seed=seed;t.s=s;t.err={};X.quantities.forEach(function(q){t.err[q.k]=(t.meas[q.k]-t.pred[q.k])/t.pred[q.k]*100});return t}
+function cls(e){var a=Math.abs(e);return a<2?"good":a<10?"mid":"bad"}
+function scene(){return X.scene||X._gs}
+
+function buildControls(){
+  $("inputs").innerHTML=X.inputs.map(function(i){return"<div class=f><label for='in-"+i.id+"'>"+i.label+" <output id='o-"+i.id+"'></output></label><input id='in-"+i.id+"' type=range min="+i.min+" max="+i.max+" step="+i.step+" value="+i.value+">"+(i.hint?"<p>"+i.hint+"</p>":"")+"</div>"}).join("");
+  $("rec-t").textContent=X.recipeTitle||"Setup";$("ex-note").textContent=X.exampleNote||"Starting values.";
+  $("sens-q").innerHTML=X.quantities.map(function(q){return"<option value='"+q.k+"'>"+q.n+"</option>"}).join("");
+  $("sens-q").value=X.sensDefault||X.quantities[0].k;
+}
+function labels(){var s=st();X.inputs.forEach(function(i){$("o-"+i.id).textContent=i.fmt(s[i.id])});
+  $("recipe").innerHTML=X.recipe(s).map(function(r){return"<dt>"+r[0]+"</dt><dd>"+r[1]+"</dd>"}).join("")}
+
+function renderResults(t,n,pend){
+  $("res-meta").textContent="run "+n+" · seed "+t.seed;
+  $("rows").innerHTML=X.quantities.map(function(q){var e=t.err[q.k],a=Math.abs(e),ex=t.notes&&t.notes[q.k]?"<small>"+t.notes[q.k]+"</small>":"";
+    return"<tr><td>"+q.n+ex+"</td><td class=r>"+f(t.pred[q.k],q.d)+q.u+"</td><td class=r>"+f(t.meas[q.k],q.d)+q.u+"</td><td class=r><span class='chip "+cls(e)+"'>"+f(a,1)+" %</span><span class=dir>"+(e>=0?"▲":"▼")+"<i> "+(e>=0?"high":"low")+"</i></span></td></tr>"}).join("");
+  $("tbl").classList.toggle("pending",!!pend);
+  $("facts").innerHTML=(X.facts||[]).map(function(x){return"<div><dt>"+x.n+"</dt><dd>"+f(t.truth[x.k],x.d)+x.u+"<span>"+(typeof x.note==="function"?x.note(t):x.note)+"</span></dd></div>"}).join("");
+  $("facts").style.opacity=pend?.28:1}
+
+var X0=300,SC=280/30,px=function(e){return X0+Math.max(-30,Math.min(30,e))*SC};
+function renderStrips(){
+  $("count").textContent=hist.length+(hist.length===1?" run":" runs");$("nav-count").textContent=hist.length;
+  var g=[-30,-20,-10,0,10,20,30].map(function(v){return"<line stroke='"+(v?"var(--faint)":"var(--mute)")+"' stroke-width='"+(v?1:1.5)+"' x1='"+px(v)+"' x2='"+px(v)+"' y1='2' y2='26'/>"}).join("");
+  $("strips").innerHTML=X.quantities.map(function(x){var es=hist.map(function(h){return h.err[x.k]}),n=es.length,m=es.reduce(function(a,b){return a+b},0)/n,
+    sd=n>1?Math.sqrt(es.reduce(function(a,b){return a+Math.pow(b-m,2)},0)/(n-1)):0;
+    var d=es.slice(0,-1).map(function(e){return"<circle class=dot cx='"+px(e)+"' cy='14' r='4'/>"}).join("");
+    return"<div class=strip><span class=n>"+x.n+"</span><svg viewBox='0 0 600 28' role='img' aria-label='Signed errors, "+x.n+"'>"+g+d+"<line class=mean x1='"+px(m)+"' x2='"+px(m)+"' y1='5' y2='23'/><circle class=last cx='"+px(es[n-1])+"' cy='14' r='5'/></svg><span class=s>"+(m>=0?"+":"−")+f(Math.abs(m),1)+" % ± "+f(sd,1)+"</span></div>"}).join("");
+  $("axis").innerHTML=[-30,-20,-10,0,10,20,30].map(function(v){return"<text class=ct x='"+px(v)+"' y='13' text-anchor='middle'>"+(v>0?"+":v<0?"−":"")+Math.abs(v)+"</text>"}).join("")}
+
+function renderSens(){
+  if(!cur)return;var qk=$("sens-q").value||X.quantities[0].k,base=cur.err[qk];
+  var rows=X.inputs.map(function(i){var a=Object.assign({},st()),b=Object.assign({},st());a[i.id]=i.min;b[i.id]=i.max;
+    var ea=evalModel(a,cur.seed).err[qk],eb=evalModel(b,cur.seed).err[qk];return{n:i.label,lo:ea,hi:eb,span:Math.abs(eb-ea)}}).sort(function(x,y){return y.span-x.span});
+  var all=[base].concat(rows.map(function(r){return r.lo}),rows.map(function(r){return r.hi})),mn=Math.min.apply(null,all),mx=Math.max.apply(null,all),pad=Math.max(5,(mx-mn)*0.08);
+  var lo=Math.floor((mn-pad)/10)*10,hi=Math.ceil((mx+pad)/10)*10,Xp=function(e){return 12+(e-lo)/(hi-lo)*576};
+  $("sens").innerHTML=rows.map(function(r){var a=Math.min(r.lo,r.hi),b=Math.max(r.lo,r.hi);
+    return"<div class=strip><span class=n>"+r.n+"</span><svg viewBox='0 0 600 28' role='img' aria-label='Error range for "+r.n+"'><line x1='"+Xp(base)+"' x2='"+Xp(base)+"' y1='2' y2='26' stroke='var(--gold)' stroke-width='1.6' stroke-dasharray='4 3'/><rect x='"+Xp(a)+"' y='10' width='"+Math.max(1,Xp(b)-Xp(a))+"' height='8' fill='var(--ink)' fill-opacity='.18' stroke='var(--ink)' stroke-width='1'/><circle cx='"+Xp(r.lo)+"' cy='14' r='5' fill='var(--sheet)' stroke='var(--ink)' stroke-width='1.8'/><circle cx='"+Xp(r.hi)+"' cy='14' r='5' fill='var(--ink)'/></svg><span class=s>"+(r.lo>=0?"+":"−")+f(Math.abs(r.lo),1)+" → "+(r.hi>=0?"+":"−")+f(Math.abs(r.hi),1)+" %</span></div>"}).join("");
+  var tk="",v,stp=(hi-lo>120?40:hi-lo>50?20:10);for(v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp)tk+="<text class=ct x='"+Xp(v)+"' y='13' text-anchor='middle'>"+(v>0?"+":v<0?"−":"")+Math.abs(v)+"</text>";$("saxis").innerHTML=tk}
+
+function stepper(si){$("steps").innerHTML=X.stages.map(function(s,i){return"<li class='"+(i<si?"done":i===si?"on":"")+"'><b>0"+(i+1)+"</b>"+s.n+"</li>"}).join("")}
+function drawAll(t,stage,u){stepper(Math.min(stage,X.stages.length));var m=scene().draw(t,stage,u);$("say").textContent=m;X.chart.draw($("chart"),t,stage,u)}
+function finalState(t){cur=t;drawAll(t,X.stages.length,1);renderResults(t,hist.length,false);renderStrips();renderSens();
+  $("tb-run").textContent=hist.length;$("tb-seed").textContent=t.seed;$("seed").value=t.seed;$("tb-state").textContent="SIMULATED"}
+function busy(b){["run","run20","clear","replay","load","exp"].forEach(function(i){if($(i))$(i).disabled=b});$("skip").disabled=!b;$("dock-run").textContent=b?"Skip":"Run trial";$("dock-20").disabled=b}
+function stop(){if(play){cancelAnimationFrame(play.raf);play=null}busy(false)}
+function logSeed(seed){var t=evalModel(st(),seed);hist.push(t);cur=t;return t}
+function run(seed,animate){
+  stop();if(animate&&PAGE!=="bench")go("bench");var t=logSeed(seed);$("tb-run").textContent=hist.length;$("tb-seed").textContent=t.seed;$("seed").value=t.seed;
+  if(!animate){finalState(t);return}
+  busy(true);$("tb-state").textContent="RUNNING";renderResults(t,hist.length,true);renderStrips();
+  var total=X.stages.reduce(function(a,s){return a+s.d},0),t0=performance.now();play={raf:0,t:t};
+  (function tick(now){var e=(now-t0)/1000,acc=0,si=0;for(;si<X.stages.length;si++){if(e<acc+X.stages[si].d)break;acc+=X.stages[si].d}
+    if(si>=X.stages.length||e>=total){play=null;busy(false);finalState(t);return}
+    drawAll(t,si,(e-acc)/X.stages[si].d);play.raf=requestAnimationFrame(tick)})(t0)}
+
+/* ---- pages, routed by the URL hash ---- */
+function loadModel(){var m=X.model3d;if(modelLoaded||!m)return;modelLoaded=true;
+  fetch(m.src).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(tx){
+    var b=atob(tx.trim()),u=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+    $("mv").src=URL.createObjectURL(new Blob([u],{type:"model/gltf-binary"}))}).catch(function(){modelLoaded=false;$("mv-note").textContent="The 3D model could not be loaded here."})}
+function show(p){if(p==="model"&&!X.model3d)p="bench";PAGE=p;
+  PAGES.forEach(function(n){$("p-"+n).hidden=n!==p});
+  [].forEach.call(document.querySelectorAll(".nav a"),function(a){if(a.getAttribute("data-p")===p)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+  $("cols").className="cols"+(p==="model"||p==="guide"?" wide":"");$("dock").hidden=(p==="model"||p==="guide");
+  $("tb-sheet").textContent=(PAGES.indexOf(p)+1)+" of 4 · "+p.charAt(0).toUpperCase()+p.slice(1);
+  if(p==="model")loadModel();window.scrollTo(0,0)}
+function go(p){if(location.hash==="#"+p)show(p);else location.hash="#"+p}
+function route(){var h=(location.hash||"#bench").slice(1);show(PAGES.indexOf(h)<0?"bench":h)}
+window.addEventListener("hashchange",route);
+
+/* ---- 3D model page (only when the experiment ships one) ---- */
+function buildModel(){
+  var m=X.model3d;$("nav-model").hidden=!m;if(!m)return;var mv=$("mv");modelLoaded=false;mv.removeAttribute("src");
+  [].slice.call(mv.querySelectorAll(".hs")).forEach(function(n){n.remove()});
+  mv.setAttribute("poster",m.poster);mv.setAttribute("alt",m.alt);mv.setAttribute("camera-orbit",m.orbit);mv.setAttribute("camera-target",m.target);mv.setAttribute("auto-rotate","");
+  m.parts.forEach(function(p,i){var b=document.createElement("button");b.className="hs";b.setAttribute("slot","hotspot-"+(i+1));b.setAttribute("data-position",p.pos);b.setAttribute("data-normal",p.nm||"0 1 0");b.setAttribute("aria-label",p.n);b.textContent=i+1;mv.appendChild(b)});
+  $("legend").innerHTML=m.parts.map(function(p,i){return"<li><button type='button' data-i='"+i+"'><b>"+(i+1)+"</b>"+p.n+"<span>"+p.d+"</span></button></li>"}).join("")+"<li><button type='button' data-i='-1'><b>◎</b>Whole scene<span>reset the view</span></button></li>";
+  $("mv-note").textContent=m.note||"";
+}
+$("legend").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||!X.model3d)return;var i=+b.getAttribute("data-i"),mv=$("mv"),m=X.model3d;mv.autoRotate=false;mv.removeAttribute("auto-rotate");
+  var U=function(v){return v.split(" ").map(function(x){return x+"m"}).join(" ")};
+  if(i<0){mv.cameraTarget=U(m.target);mv.cameraOrbit=m.orbit}else{mv.cameraTarget=U(m.parts[i].pos);mv.cameraOrbit=m.zoom+m.parts[i].r}});
+
+/* ---- "Try this": a different worked example on every load, numbers computed from the model ---- */
+var exI=-1;
+function spec(o){return Object.keys(o).map(function(k){var i=X.inputs.filter(function(x){return x.id===k})[0];return"the "+i.label+" slider to "+i.fmt(o[k])}).join(" and ")}
+function showEx(){
+  var ex=X.examples||[];if(!ex.length){$("try").textContent="";return}
+  var n=ex.length,i=exI;while(n>1&&i===exI)i=Math.floor(Math.random()*n);exI=i;var e=ex[i],d0={};X.inputs.forEach(function(x){d0[x.id]=x.value});
+  var a=evalModel(d0,X.seed),b=evalModel(Object.assign({},d0,e.set),X.seed),q=X.quantities.filter(function(x){return x.k===e.k})[0],fx=e.fact&&X.facts.filter(function(x){return x.k===e.fact})[0];
+  $("try").innerHTML="<b>Try this: "+e.t+".</b> Set "+spec(e.set)+" and run. Against the example run (seed "+X.seed+"), "+q.n.toLowerCase()+" goes from "+f(a.meas[e.k],q.d)+q.u+" to "+f(b.meas[e.k],q.d)+q.u+
+    " and its error from "+f(Math.abs(a.err[e.k]),1)+" % to "+f(Math.abs(b.err[e.k]),1)+" %."+(fx?" The model says "+fx.n.toLowerCase()+" goes from "+f(a.truth[fx.k],fx.d)+fx.u+" to "+f(b.truth[fx.k],fx.d)+fx.u+".":"")+
+    "<br><button type='button' id='ex-load'>Load this setup</button><button type='button' id='ex-next'>Another example</button>";
+  $("ex-load").onclick=function(){stop();var s=Object.assign({},d0,e.set);Object.keys(s).forEach(function(k){$("in-"+k).value=s[k]});labels();hist=[];run(X.seed,true);go("bench")};
+  $("ex-next").onclick=showEx}
+
+/* ---- switching experiments ---- */
+function setExperiment(i){
+  stop();X=EXPERIMENTS[i];$("exp").value=i;X._gs=X.scene?null:genericScene();hist=[];cur=null;
+  buildControls();labels();
+  $("tb-exp").textContent=X.name;$("exp-name").textContent=X.name;$("about").innerHTML=X.about||"";$("about-t").textContent="About this experiment: "+X.name;
+  $("h-dry").textContent=X.chart.title;$("chart-s").textContent=X.chart.sub;
+  var sc=scene();$("scene").innerHTML=sc.svg;if(sc.init)sc.init();
+  buildModel();exI=-1;showEx();run(X.seed,false);route()}
+
+/* ---- wiring ---- */
+$("inputs").addEventListener("input",function(){if(play)return;labels();var t=evalModel(st(),cur.seed);hist[hist.length-1]=t;finalState(t)});
+$("run").addEventListener("click",function(){run(Math.floor(Math.random()*1e6),true)});
+$("skip").addEventListener("click",function(){if(play){var t=play.t;stop();finalState(t)}});
+$("run20").addEventListener("click",function(){stop();var t;for(var i=0;i<20;i++)t=logSeed(Math.floor(Math.random()*1e6));$("tb-run").textContent=hist.length;finalState(t);go("results")});
+$("clear").addEventListener("click",function(){stop();hist=[];run(Math.floor(Math.random()*1e6),false)});
+$("replay").addEventListener("click",function(){run(Math.max(0,Math.min(999999,Math.floor(+$("seed").value||0))),true)});
+$("load").addEventListener("click",function(){stop();X.inputs.forEach(function(i){$("in-"+i.id).value=i.value});labels();hist=[];run(X.seed,true)});
+$("to-results").addEventListener("click",function(){go("results")});
+$("dock-run").addEventListener("click",function(){if(play)$("skip").click();else $("run").click()});
+$("dock-20").addEventListener("click",function(){$("run20").click()});
+$("dock-ctl").addEventListener("click",function(){$("ctl").scrollIntoView({behavior:"smooth",block:"start"})});
+$("sens-q").addEventListener("change",renderSens);
+$("exp").addEventListener("change",function(){setExperiment(+$("exp").value)});
+$("copy").addEventListener("click",function(){var head=["Run","Seed"].concat(X.quantities.map(function(x){return x.n+" predicted"}),X.quantities.map(function(x){return x.n+" measured"}),X.quantities.map(function(x){return x.n+" % error"})).join("\t");
+  var rows=hist.map(function(h,i){return[i+1,h.seed].concat(X.quantities.map(function(x){return f(h.pred[x.k],x.d)}),X.quantities.map(function(x){return f(h.meas[x.k],x.d)}),X.quantities.map(function(x){return f(Math.abs(h.err[x.k]),1)})).join("\t")});
+  clip([head].concat(rows).join("\n"),"toast","Copied "+hist.length+" runs. Paste into a spreadsheet.")});
+function clip(text,id,ok){var tz=$(id);function done(g){tz.textContent=g?ok:"Copy was blocked by the browser. Select the text by hand."}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){done(true)},function(){done(false)});else done(false)}
+
+
+if(EXPERIMENTS.length>1){$("expbox").hidden=false;$("exp").innerHTML=EXPERIMENTS.map(function(e,i){return"<option value='"+i+"'>"+e.name+"</option>"}).join("")}
+setExperiment(0);
+})();
+</script>
+
+</body></html>
